@@ -1,0 +1,56 @@
+# Server configuration
+server_name: "synapse-production-e979.up.railway.app"
+public_baseurl: "https://synapse-production-e979.up.railway.app/"
+pid_file: /data/homeserver.pid
+
+# Listener configuration
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    bind_addresses: ["0.0.0.0"]
+    resources:
+      - names: [client, federation]
+        compress: false
+
+# Database configuration - PostgreSQL (hardcoded)
+database:
+  name: psycopg2
+  args:
+    user: postgres
+    password: eEFsjzqXcmIBuvOWLPXXIPVLJQKlTOkC
+    host: postgres.railway.internal
+    port: 5432
+    database: railway
+    cp_min: 5
+    cp_max: 10
+  allow_unsafe_locale: true
+
+# Stats reporting
+report_stats: true
+
+# Secrets - hardcoded
+registration_shared_secret: "4578b92c30adf6e1"
+macaroon_secret_key: "6f01b8a9c5e2d437"
+form_secret: "32f4cb150ed867a9"
+
+# Signing key path
+signing_key_path: "/data/synapse-production-e979.up.railway.app.signing.key"
+
+# Trusted key servers
+trusted_key_servers:
+  - server_name: "matrix.org"
+
+# Suppress key server warning for matrix.org
+suppress_key_server_warning: true
+
+# Media storage
+media_store_path: /data/media_store
+
+# Enable registration (you can disable this after creating your admin account)
+enable_registration: true
+enable_registration_without_verification: true
+
+# Log configuration
+log_config: "/data/synapse-production-e979.up.railway.app.log.config"
