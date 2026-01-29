@@ -1,0 +1,21 @@
+# Copyright 2024-2025 New Vector Ltd
+# Copyright 2025 Element Creations Ltd
+#
+# SPDX-License-Identifier: AGPL-3.0-only
+
+elementAdmin:
+  ingress:
+    host: admin.ess-helm-production-e7e6.up.railway.app
+elementWeb:
+  ingress:
+    host: chat.ess-helm-production-e7e6.up.railway.app
+matrixAuthenticationService:
+  ingress:
+    host: account.ess-helm-production-e7e6.up.railway.app
+matrixRTC:
+  ingress:
+    host: mrtc.ess-helm-production-e7e6.up.railway.app
+serverName: ess-helm-production-e7e6.up.railway.app
+synapse:
+  ingress:
+    host: matrix.ess-helm-production-e7e6.up.railway.app
