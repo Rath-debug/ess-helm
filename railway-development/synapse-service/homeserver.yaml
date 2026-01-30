@@ -23,9 +23,16 @@ database:
     host: postgres.railway.internal
     port: 5432
     database: railway
-    cp_min: 5
-    cp_max: 10
+    sslmode: "prefer"
+    connect_timeout: 10
+    keepalives: 1
+    keepalives_idle: 30
+    cp_min: 1
+    cp_max: 5
   allow_unsafe_locale: true
+  max_overflow: 10
+  echo: false
+  pool_recycle: 3600
 
 # Stats reporting
 report_stats: true
