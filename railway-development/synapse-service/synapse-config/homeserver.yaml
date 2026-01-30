@@ -9,7 +9,7 @@
 # For more information on how to configure Synapse, including a complete accounting of
 # each option, go to docs/usage/configuration/config_documentation.md or
 # https://element-hq.github.io/synapse/latest/usage/configuration/config_documentation.html
-server_name: "synapse-production-e979.up.railway.app"
+server_name: "synape-production.up.railway.app"
 pid_file: /data/homeserver.pid
 listeners:
   - port: 8008
@@ -25,13 +25,13 @@ database:
   name: sqlite3
   args:
     database: /data/homeserver.db
-log_config: "/data/synapse-production-e979.up.railway.app.log.config"
+log_config: "/data/synape-production.up.railway.app.log.config"
 media_store_path: /data/media_store
 registration_shared_secret: ".:LUAD=rZ8H:_iEG0^FfBmA:F&;RY5EaYtx^yH=fpY#oNva&zY"
 report_stats: true
 macaroon_secret_key: "bjU5I@jQ5,E*mbT6uy*SkLdTk3^jrLSrVqDHO3dJo*-o_F4,WY"
 form_secret: "ZyzQjeN;h1e#jKVLyT4sSzLZcxp+KYZv#;Qx68f~2jC1RWbdIR"
-signing_key_path: "/data/synapse-production-e979.up.railway.app.signing.key"
+signing_key_path: "/data/synape-production.up.railway.app.signing.key"
 trusted_key_servers:
   - server_name: "matrix.org"
 

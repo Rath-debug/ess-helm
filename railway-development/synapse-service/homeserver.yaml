@@ -1,6 +1,6 @@
 # Server configuration
-server_name: "synapse-production-e979.up.railway.app"
-public_baseurl: "https://synapse-production-e979.up.railway.app/"
+server_name: "synape-production.up.railway.app"
+public_baseurl: "https://synape-production.up.railway.app/"
 pid_file: /data/homeserver.pid
 
 # Listener configuration
@@ -19,7 +19,7 @@ database:
   name: psycopg2
   args:
     user: postgres
-    password: eEFsjzqXcmIBuvOWLPXXIPVLJQKlTOkC
+    password: LeUljcdAHrEPPBfeoHyJrYHDUGaIowmc
     host: postgres.railway.internal
     port: 5432
     database: railway
@@ -36,7 +36,7 @@ macaroon_secret_key: "6f01b8a9c5e2d437"
 form_secret: "32f4cb150ed867a9"
 
 # Signing key path
-signing_key_path: "/data/synapse-production-e979.up.railway.app.signing.key"
+signing_key_path: "/data/synape-production.up.railway.app.signing.key"
 
 # Trusted key servers
 trusted_key_servers:
@@ -53,4 +53,4 @@ enable_registration: true
 enable_registration_without_verification: true
 
 # Log configuration
-log_config: "/data/synapse-production-e979.up.railway.app.log.config"
+log_config: "/data/synape-production.up.railway.app.log.config"
