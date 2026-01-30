@@ -1,36 +1,91 @@
 #!/bin/sh
 set -e
 
-echo "[DEBUG] Starting Synapse initialization..."
-echo "[DEBUG] Environment: OS=$(uname -s), Python=$(python --version 2>&1 || echo 'N/A')"
+# Force unbuffered output to see logs in real-time
+export PYTHONUNBUFFERED=1
 
-# Sync config files into /data (handles persistent volume overrides)
-echo "[DEBUG] Copying config files to /data..."
-cp -a /config/. /data/ || echo "[WARN] Config sync encountered issues, continuing..."
+echo "=========================================="
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] SYNAPSE STARTUP DIAGNOSTIC"
+echo "=========================================="
 
-# Ensure correct ownership for synapse user
-echo "[DEBUG] Setting permissions for synapse user (991:991)..."
-chown -R 991:991 /data 2>/dev/null || echo "[WARN] Permission change incomplete"
-chmod -R 755 /data
+echo ""
+echo "[DEBUG] System Information:"
+echo "  - OS: $(uname -a)"
+echo "  - Hostname: $(hostname)"
+echo "  - Current user: $(whoami)"
+echo "  - Current directory: $(pwd)"
 
-# Validate critical files exist
-echo "[DEBUG] Validating configuration files..."
-[ -f /data/homeserver.yaml ] && echo "[OK] homeserver.yaml found" || echo "[ERROR] homeserver.yaml missing!"
-[ -f /data/*.signing.key ] && echo "[OK] signing key found" || echo "[ERROR] signing key missing!"
-[ -f /data/*.log.config ] && echo "[OK] log config found" || echo "[ERROR] log config missing!"
+echo ""
+echo "[DEBUG] Python Environment:"
+python --version 2>&1 || echo "[ERROR] Python not found!"
+python -c "import sys; print(f'  - Python path: {sys.executable}')"
+python -c "import psycopg2; print(f'  - psycopg2 version: {psycopg2.__version__}')" 2>&1 || echo "[WARN] psycopg2 not installed"
 
-# Test PostgreSQL connectivity (diagnostic only, continues if fails)
-echo "[DEBUG] Testing PostgreSQL connectivity..."
-if command -v nc >/dev/null 2>&1; then
-    if nc -zv postgres.railway.internal 5432 2>/dev/null; then
-        echo "[OK] PostgreSQL port is reachable on postgres.railway.internal:5432"
+echo ""
+echo "[DEBUG] File Sync & Permissions:"
+cp -av /config/. /data/ 2>&1 | head -20 || echo "[WARN] Config copy had issues"
+chown -R 991:991 /data 2>&1 && echo "  [OK] Ownership set to 991:991"
+chmod -R 755 /data 2>&1 && echo "  [OK] Permissions set to 755"
+
+echo ""
+echo "[DEBUG] Configuration Files:"
+for file in /data/homeserver.yaml /data/*.signing.key /data/*.log.config; do
+    if [ -f "$file" ]; then
+        size=$(ls -lh "$file" | awk '{print $5}')
+        echo "  [OK] $(basename $file) ($size)"
     else
-        echo "[WARN] Cannot reach PostgreSQL at postgres.railway.internal:5432 - will retry on startup"
+        echo "  [ERROR] Missing: $file"
     fi
-else
-    echo "[INFO] netcat not available, skipping connectivity check"
+done
+
+echo ""
+echo "[DEBUG] Database Connectivity Tests:"
+echo "  - Target: postgres.railway.internal:5432"
+
+# Try DNS resolution
+if command -v getent >/dev/null 2>&1; then
+    if getent hosts postgres.railway.internal >/dev/null 2>&1; then
+        ip=$(getent hosts postgres.railway.internal | awk '{print $1}')
+        echo "  [OK] DNS resolved to: $ip"
+    else
+        echo "  [WARN] Cannot resolve postgres.railway.internal"
+    fi
 fi
 
-# Start Synapse with the expected config path
-echo "[DEBUG] Starting Synapse with config: /data/homeserver.yaml"
-exec python -m synapse.app.homeserver --config-path /data/homeserver.yaml
+# Try TCP connection
+if command -v nc >/dev/null 2>&1; then
+    echo "  - Attempting TCP connection (timeout: 5s)..."
+    if timeout 5 nc -zv postgres.railway.internal 5432 2>&1; then
+        echo "  [OK] PostgreSQL port is reachable"
+    else
+        echo "  [ERROR] Cannot reach PostgreSQL (exit code: $?)"
+    fi
+elif command -v timeout >/dev/null 2>&1 && command -v bash >/dev/null 2>&1; then
+    if timeout 5 bash -c "cat < /dev/null > /dev/tcp/postgres.railway.internal/5432" 2>&1; then
+        echo "  [OK] PostgreSQL port is reachable (via bash)"
+    else
+        echo "  [ERROR] Cannot reach PostgreSQL (exit code: $?)"
+    fi
+else
+    echo "  [SKIP] nc/bash not available for connectivity test"
+fi
+
+echo ""
+echo "[DEBUG] Environment Variables (sanitized):"
+echo "  - DATABASE_URL: $(echo $DATABASE_URL | cut -c1-20)..."
+echo "  - SYNAPSE_SERVER_NAME: $SYNAPSE_SERVER_NAME"
+echo "  - PATH: $PATH"
+
+echo ""
+echo "=========================================="
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] STARTING SYNAPSE"
+echo "=========================================="
+echo ""
+
+# Start Synapse with full error output
+exec python -m synapse.app.homeserver \
+    --config-path /data/homeserver.yaml \
+    -v 2>&1 || { 
+        echo "[FATAL] Synapse failed to start (exit code: $?)"
+        exit 1
+    }
